@@ -2,7 +2,11 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
 import { AppState, AppAction, Member, Loan } from './types'
-import { seedMembers, seedContributions, seedLoans, seedRepayments } from './seedData'
+import {
+  seedMembers, seedContributions, seedLoans, seedRepayments,
+  seedAnnouncements, seedAnnouncementComments, seedMeetings,
+  seedPublishedReports, seedLoanRequests, seedFineSettings,
+} from './seedData'
 
 const STORAGE_KEY = 'ledgex_state'
 
@@ -14,9 +18,7 @@ function recalculateLoans(state: AppState): AppState {
       .reduce((sum, r) => sum + r.amount, 0)
     const balance = Math.max(0, loan.amount - totalRepaid)
     let status: Loan['status'] = balance === 0 ? 'paid' : 'active'
-    if (balance > 0 && new Date(loan.dueDate) < today) {
-      status = 'overdue'
-    }
+    if (balance > 0 && new Date(loan.dueDate) < today) status = 'overdue'
     return { ...loan, balance, status }
   })
   return { ...state, loans: updatedLoans }
@@ -31,6 +33,10 @@ function reducer(state: AppState, action: AppAction): AppState {
 
     case 'UPDATE_GROUP_NAME':
       newState = { ...state, groupName: action.payload }
+      break
+
+    case 'UPDATE_FINE_SETTINGS':
+      newState = { ...state, fineSettings: action.payload }
       break
 
     case 'SET_CURRENT_USER':
@@ -84,14 +90,72 @@ function reducer(state: AppState, action: AppAction): AppState {
       break
 
     case 'ADD_REPAYMENT': {
-      const newRepayments = [...state.repayments, action.payload]
-      const stateWithRepayment = { ...state, repayments: newRepayments }
-      newState = recalculateLoans(stateWithRepayment)
+      const withRepayment = { ...state, repayments: [...state.repayments, action.payload] }
+      newState = recalculateLoans(withRepayment)
       break
     }
 
     case 'RECALCULATE_LOANS':
       newState = recalculateLoans(state)
+      break
+
+    case 'ADD_ANNOUNCEMENT':
+      newState = { ...state, announcements: [action.payload, ...state.announcements] }
+      break
+
+    case 'DELETE_ANNOUNCEMENT':
+      newState = {
+        ...state,
+        announcements: state.announcements.filter((a) => a.id !== action.payload),
+        announcementComments: state.announcementComments.filter((c) => c.announcementId !== action.payload),
+      }
+      break
+
+    case 'PIN_ANNOUNCEMENT':
+      newState = {
+        ...state,
+        announcements: state.announcements.map((a) =>
+          a.id === action.payload ? { ...a, pinned: !a.pinned } : a
+        ),
+      }
+      break
+
+    case 'ADD_ANNOUNCEMENT_COMMENT':
+      newState = { ...state, announcementComments: [...state.announcementComments, action.payload] }
+      break
+
+    case 'ADD_MEETING':
+      newState = { ...state, meetings: [action.payload, ...state.meetings] }
+      break
+
+    case 'UPDATE_MEETING':
+      newState = {
+        ...state,
+        meetings: state.meetings.map((m) => (m.id === action.payload.id ? action.payload : m)),
+      }
+      break
+
+    case 'DELETE_MEETING':
+      newState = { ...state, meetings: state.meetings.filter((m) => m.id !== action.payload) }
+      break
+
+    case 'PUBLISH_REPORT':
+      newState = { ...state, publishedReports: [action.payload, ...state.publishedReports] }
+      break
+
+    case 'DELETE_PUBLISHED_REPORT':
+      newState = { ...state, publishedReports: state.publishedReports.filter((r) => r.id !== action.payload) }
+      break
+
+    case 'ADD_LOAN_REQUEST':
+      newState = { ...state, loanRequests: [action.payload, ...state.loanRequests] }
+      break
+
+    case 'UPDATE_LOAN_REQUEST':
+      newState = {
+        ...state,
+        loanRequests: state.loanRequests.map((r) => (r.id === action.payload.id ? action.payload : r)),
+      }
       break
 
     default:
@@ -109,6 +173,12 @@ const initialState: AppState = {
   contributions: seedContributions,
   loans: seedLoans,
   repayments: seedRepayments,
+  announcements: seedAnnouncements,
+  announcementComments: seedAnnouncementComments,
+  meetings: seedMeetings,
+  publishedReports: seedPublishedReports,
+  loanRequests: seedLoanRequests,
+  fineSettings: seedFineSettings,
   groupName: 'IKIMINA Ubumwe',
   currentUser: null,
   currentMemberId: null,
@@ -128,9 +198,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (saved) {
         try {
           const parsed = JSON.parse(saved) as AppState
-          dispatch({ type: 'LOAD_STATE', payload: parsed })
+          // back-fill new fields that old stored state may lack
+          dispatch({
+            type: 'LOAD_STATE',
+            payload: {
+              ...initialState,
+              ...parsed,
+              announcements: parsed.announcements ?? initialState.announcements,
+              announcementComments: parsed.announcementComments ?? initialState.announcementComments,
+              meetings: parsed.meetings ?? initialState.meetings,
+              publishedReports: parsed.publishedReports ?? initialState.publishedReports,
+              loanRequests: parsed.loanRequests ?? initialState.loanRequests,
+              fineSettings: parsed.fineSettings ?? initialState.fineSettings,
+            },
+          })
         } catch {
-          // ignore parse errors, keep initial state
+          // ignore, keep initial state
         }
       }
     }
@@ -145,8 +228,9 @@ export function useApp() {
   return ctx
 }
 
-// Selector helpers
-export function getMemberById(members: Member[], id: string) {
+// ── Selector helpers ────────────────────────────────────────────────────────
+
+export function getMemberById(members: AppState['members'], id: string) {
   return members.find((m) => m.id === id)
 }
 
@@ -172,6 +256,26 @@ export function getMemberLoans(loans: AppState['loans'], memberId: string) {
 
 export function getLoanRepayments(repayments: AppState['repayments'], loanId: string) {
   return repayments.filter((r) => r.loanId === loanId)
+}
+
+export function getMemberRiskStatus(
+  loans: AppState['loans'],
+  repayments: AppState['repayments'],
+  memberId: string
+): 'HIGH RISK' | 'MEDIUM RISK' | 'ACTIVE' | 'NEW' {
+  const memberLoans = loans.filter((l) => l.memberId === memberId)
+  if (memberLoans.length === 0) return 'NEW'
+  const overdue = memberLoans.filter((l) => l.status === 'overdue')
+  if (overdue.length > 0) return 'HIGH RISK'
+  const activeLoans = memberLoans.filter((l) => l.status === 'active')
+  if (activeLoans.length > 0) {
+    const anyPartlyRepaid = activeLoans.some((l) => {
+      const paid = l.amount - l.balance
+      return paid / l.amount < 0.3
+    })
+    if (anyPartlyRepaid) return 'MEDIUM RISK'
+  }
+  return 'ACTIVE'
 }
 
 export function formatRWF(amount: number) {

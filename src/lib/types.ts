@@ -34,11 +34,68 @@ export interface Repayment {
   date: string
 }
 
+export interface Announcement {
+  id: string
+  title: string
+  content: string
+  publishedAt: string
+  pinned: boolean
+}
+
+export interface AnnouncementComment {
+  id: string
+  announcementId: string
+  memberId: string
+  content: string
+  date: string
+}
+
+export interface Meeting {
+  id: string
+  title: string
+  date: string
+  description?: string
+  attendees: string[]
+}
+
+export interface PublishedReport {
+  id: string
+  title: string
+  period: string
+  publishedAt: string
+  totalSavings: number
+  totalLoansIssued: number
+  overdueAmount: number
+  cashPosition: number
+  notes?: string
+}
+
+export interface LoanRequest {
+  id: string
+  memberId: string
+  amount: number
+  purpose: string
+  requestedAt: string
+  status: 'pending' | 'approved' | 'rejected'
+  reviewNotes?: string
+}
+
+export interface FineSettings {
+  missedAttendanceFine: number
+  latePaymentInterestRate: number
+}
+
 export interface AppState {
   members: Member[]
   contributions: Contribution[]
   loans: Loan[]
   repayments: Repayment[]
+  announcements: Announcement[]
+  announcementComments: AnnouncementComment[]
+  meetings: Meeting[]
+  publishedReports: PublishedReport[]
+  loanRequests: LoanRequest[]
+  fineSettings: FineSettings
   groupName: string
   currentUser: { name: string; email: string } | null
   currentMemberId: string | null
@@ -53,6 +110,18 @@ export type AppAction =
   | { type: 'ADD_LOAN'; payload: Loan }
   | { type: 'UPDATE_LOAN'; payload: Loan }
   | { type: 'ADD_REPAYMENT'; payload: Repayment }
+  | { type: 'ADD_ANNOUNCEMENT'; payload: Announcement }
+  | { type: 'DELETE_ANNOUNCEMENT'; payload: string }
+  | { type: 'PIN_ANNOUNCEMENT'; payload: string }
+  | { type: 'ADD_ANNOUNCEMENT_COMMENT'; payload: AnnouncementComment }
+  | { type: 'ADD_MEETING'; payload: Meeting }
+  | { type: 'UPDATE_MEETING'; payload: Meeting }
+  | { type: 'DELETE_MEETING'; payload: string }
+  | { type: 'PUBLISH_REPORT'; payload: PublishedReport }
+  | { type: 'DELETE_PUBLISHED_REPORT'; payload: string }
+  | { type: 'ADD_LOAN_REQUEST'; payload: LoanRequest }
+  | { type: 'UPDATE_LOAN_REQUEST'; payload: LoanRequest }
+  | { type: 'UPDATE_FINE_SETTINGS'; payload: FineSettings }
   | { type: 'UPDATE_GROUP_NAME'; payload: string }
   | { type: 'SET_CURRENT_USER'; payload: { name: string; email: string } }
   | { type: 'SET_CURRENT_MEMBER'; payload: string }

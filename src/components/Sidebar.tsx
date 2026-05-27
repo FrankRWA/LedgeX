@@ -10,6 +10,10 @@ import {
   ArrowDownCircle,
   CreditCard,
   FileBarChart,
+  Megaphone,
+  CalendarCheck,
+  BarChart3,
+  InboxIcon,
   Settings,
   LogOut,
   ChevronRight,
@@ -20,7 +24,10 @@ const navItems = [
   { href: '/members', label: 'Members', icon: Users },
   { href: '/contributions', label: 'Contributions', icon: ArrowDownCircle },
   { href: '/loans', label: 'Loans', icon: CreditCard },
-  { href: '/reports', label: 'Reports', icon: FileBarChart },
+  { href: '/loan-requests', label: 'Loan Requests', icon: InboxIcon },
+  { href: '/announcements', label: 'Announcements', icon: Megaphone },
+  { href: '/attendance', label: 'Attendance', icon: CalendarCheck },
+  { href: '/published-reports', label: 'Reports', icon: BarChart3 },
   { href: '/settings', label: 'Settings', icon: Settings },
 ]
 

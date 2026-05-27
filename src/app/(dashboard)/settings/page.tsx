@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useApp } from '@/lib/store'
 import Toast from '@/components/Toast'
-import { Settings, BookOpen, KeyRound, Eye, EyeOff, Save, Check } from 'lucide-react'
+import { Settings, BookOpen, KeyRound, Eye, EyeOff, Save, Check, AlertCircle } from 'lucide-react'
 
 export default function SettingsPage() {
   const { state, dispatch } = useApp()
@@ -12,6 +12,22 @@ export default function SettingsPage() {
   // Group name
   const [groupName, setGroupName] = useState(state.groupName)
   const [groupNameSaved, setGroupNameSaved] = useState(false)
+
+  // Fine settings
+  const [fines, setFines] = useState(state.fineSettings)
+  const [finesSaved, setFinesSaved] = useState(false)
+
+  function saveFines(e: React.FormEvent) {
+    e.preventDefault()
+    if (fines.missedAttendanceFine < 0 || fines.latePaymentInterestRate < 0) {
+      setToast({ msg: 'Values cannot be negative', type: 'error' })
+      return
+    }
+    dispatch({ type: 'UPDATE_FINE_SETTINGS', payload: fines })
+    setFinesSaved(true)
+    setTimeout(() => setFinesSaved(false), 2000)
+    setToast({ msg: 'Fine settings updated', type: 'success' })
+  }
 
   function saveGroupName(e: React.FormEvent) {
     e.preventDefault()
@@ -205,6 +221,68 @@ export default function SettingsPage() {
             )
           })}
         </div>
+      </section>
+
+      {/* Fines & Interest */}
+      <section className="bg-white rounded-xl border border-gray-100 p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
+            <AlertCircle className="w-4 h-4 text-red-700" />
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-900">Fines &amp; Interest Rates</h2>
+            <p className="text-gray-400 text-xs">Applied automatically in attendance and loan calculations</p>
+          </div>
+        </div>
+
+        <form onSubmit={saveFines} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Missed Attendance Fine (RWF)
+              </label>
+              <input
+                type="number"
+                min="0"
+                value={fines.missedAttendanceFine}
+                onChange={(e) => setFines({ ...fines, missedAttendanceFine: Number(e.target.value) })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">Charged per member per missed meeting</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Late Payment Interest Rate (% / month)
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.5"
+                value={fines.latePaymentInterestRate}
+                onChange={(e) => setFines({ ...fines, latePaymentInterestRate: Number(e.target.value) })}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">Applied to overdue loan balances monthly</p>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 rounded-lg px-4 py-3 text-sm text-gray-500">
+            Currently: <strong className="text-gray-700">RWF {state.fineSettings.missedAttendanceFine.toLocaleString()}</strong> per absence ·{' '}
+            <strong className="text-gray-700">{state.fineSettings.latePaymentInterestRate}%/month</strong> late interest
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all ${
+                finesSaved ? 'bg-green-600 text-white' : 'bg-blue-800 hover:bg-blue-900 text-white'
+              }`}
+            >
+              {finesSaved ? <><Check className="w-4 h-4" />Saved</> : <><Save className="w-4 h-4" />Save Changes</>}
+            </button>
+          </div>
+        </form>
       </section>
 
       {toast && <Toast message={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
