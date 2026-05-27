@@ -29,6 +29,10 @@ function reducer(state: AppState, action: AppAction): AppState {
     case 'LOAD_STATE':
       return action.payload
 
+    case 'UPDATE_GROUP_NAME':
+      newState = { ...state, groupName: action.payload }
+      break
+
     case 'SET_CURRENT_USER':
       newState = { ...state, currentUser: action.payload }
       break

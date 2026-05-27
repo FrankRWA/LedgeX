@@ -53,6 +53,7 @@ export type AppAction =
   | { type: 'ADD_LOAN'; payload: Loan }
   | { type: 'UPDATE_LOAN'; payload: Loan }
   | { type: 'ADD_REPAYMENT'; payload: Repayment }
+  | { type: 'UPDATE_GROUP_NAME'; payload: string }
   | { type: 'SET_CURRENT_USER'; payload: { name: string; email: string } }
   | { type: 'SET_CURRENT_MEMBER'; payload: string }
   | { type: 'LOGOUT' }

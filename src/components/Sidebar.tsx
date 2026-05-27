@@ -10,6 +10,7 @@ import {
   ArrowDownCircle,
   CreditCard,
   FileBarChart,
+  Settings,
   LogOut,
   ChevronRight,
 } from 'lucide-react'
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/contributions', label: 'Contributions', icon: ArrowDownCircle },
   { href: '/loans', label: 'Loans', icon: CreditCard },
   { href: '/reports', label: 'Reports', icon: FileBarChart },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function Sidebar() {
