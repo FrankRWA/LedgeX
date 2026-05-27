@@ -1,0 +1,95 @@
+import { Member, Contribution, Loan, Repayment } from './types'
+
+export const seedMembers: Member[] = [
+  { id: 'm1', name: 'Uwimana Jean Pierre', phone: '+250788123456', email: 'jean@example.com', role: 'admin', joinedDate: '2024-01-15' },
+  { id: 'm2', name: 'Mukamana Grace', phone: '+250788234567', email: 'grace@example.com', role: 'treasurer', joinedDate: '2024-01-15' },
+  { id: 'm3', name: 'Habimana Patrick', phone: '+250788345678', email: 'patrick@example.com', role: 'member', joinedDate: '2024-01-20' },
+  { id: 'm4', name: 'Umurungi Celestine', phone: '+250788456789', email: 'celestine@example.com', role: 'member', joinedDate: '2024-02-01' },
+  { id: 'm5', name: 'Nkurunziza Eric', phone: '+250788567890', email: 'eric@example.com', role: 'member', joinedDate: '2024-02-01' },
+  { id: 'm6', name: 'Iradukunda Alice', phone: '+250788678901', email: 'alice@example.com', role: 'member', joinedDate: '2024-02-10' },
+  { id: 'm7', name: 'Mutabazi David', phone: '+250788789012', email: 'david@example.com', role: 'member', joinedDate: '2024-03-01' },
+  { id: 'm8', name: 'Nyirahabimana Rose', phone: '+250788890123', email: 'rose@example.com', role: 'member', joinedDate: '2024-03-15' },
+]
+
+export const seedContributions: Contribution[] = [
+  { id: 'c1', memberId: 'm1', amount: 50000, date: '2024-01-31', notes: 'January contribution' },
+  { id: 'c2', memberId: 'm2', amount: 50000, date: '2024-01-31', notes: 'January contribution' },
+  { id: 'c3', memberId: 'm3', amount: 50000, date: '2024-01-31', notes: 'January contribution' },
+  { id: 'c4', memberId: 'm4', amount: 50000, date: '2024-01-31', notes: 'January contribution' },
+  { id: 'c5', memberId: 'm5', amount: 50000, date: '2024-01-31', notes: 'January contribution' },
+  { id: 'c6', memberId: 'm6', amount: 50000, date: '2024-01-31', notes: 'January contribution' },
+  { id: 'c7', memberId: 'm1', amount: 50000, date: '2024-02-29', notes: 'February contribution' },
+  { id: 'c8', memberId: 'm2', amount: 50000, date: '2024-02-29', notes: 'February contribution' },
+  { id: 'c9', memberId: 'm3', amount: 50000, date: '2024-02-29', notes: 'February contribution' },
+  { id: 'c10', memberId: 'm4', amount: 50000, date: '2024-02-29', notes: 'February contribution' },
+  { id: 'c11', memberId: 'm5', amount: 50000, date: '2024-02-29', notes: 'February contribution' },
+  { id: 'c12', memberId: 'm7', amount: 50000, date: '2024-03-31', notes: 'March contribution' },
+  { id: 'c13', memberId: 'm8', amount: 50000, date: '2024-03-31', notes: 'March contribution' },
+  { id: 'c14', memberId: 'm1', amount: 50000, date: '2024-03-31', notes: 'March contribution' },
+  { id: 'c15', memberId: 'm2', amount: 50000, date: '2024-03-31', notes: 'March contribution' },
+  { id: 'c16', memberId: 'm3', amount: 75000, date: '2024-04-30', notes: 'April contribution' },
+  { id: 'c17', memberId: 'm6', amount: 50000, date: '2024-04-30', notes: 'April contribution' },
+  { id: 'c18', memberId: 'm1', amount: 50000, date: '2024-04-30', notes: 'April contribution' },
+]
+
+export const seedLoans: Loan[] = [
+  {
+    id: 'l1',
+    memberId: 'm3',
+    amount: 200000,
+    balance: 80000,
+    status: 'active',
+    issuedDate: '2024-02-15',
+    dueDate: '2024-08-15',
+    purpose: 'Business capital',
+  },
+  {
+    id: 'l2',
+    memberId: 'm5',
+    amount: 150000,
+    balance: 0,
+    status: 'paid',
+    issuedDate: '2024-01-20',
+    dueDate: '2024-04-20',
+    purpose: 'School fees',
+  },
+  {
+    id: 'l3',
+    memberId: 'm7',
+    amount: 100000,
+    balance: 100000,
+    status: 'overdue',
+    issuedDate: '2024-01-10',
+    dueDate: '2024-03-10',
+    purpose: 'Medical expenses',
+  },
+  {
+    id: 'l4',
+    memberId: 'm4',
+    amount: 300000,
+    balance: 250000,
+    status: 'active',
+    issuedDate: '2024-04-01',
+    dueDate: '2024-10-01',
+    purpose: 'Home improvement',
+  },
+  {
+    id: 'l5',
+    memberId: 'm8',
+    amount: 80000,
+    balance: 80000,
+    status: 'overdue',
+    issuedDate: '2024-02-01',
+    dueDate: '2024-04-01',
+    purpose: 'Agricultural inputs',
+  },
+]
+
+export const seedRepayments: Repayment[] = [
+  { id: 'r1', loanId: 'l1', amount: 60000, date: '2024-03-15' },
+  { id: 'r2', loanId: 'l1', amount: 60000, date: '2024-04-15' },
+  { id: 'r3', loanId: 'l2', amount: 50000, date: '2024-02-20' },
+  { id: 'r4', loanId: 'l2', amount: 50000, date: '2024-03-20' },
+  { id: 'r5', loanId: 'l2', amount: 50000, date: '2024-04-20' },
+  { id: 'r6', loanId: 'l4', amount: 50000, date: '2024-05-01' },
+]
