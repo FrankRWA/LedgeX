@@ -6,7 +6,7 @@ import { LoanRequest } from '@/lib/types'
 import Modal from '@/components/Modal'
 import Toast from '@/components/Toast'
 import { InboxIcon, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, addMonths } from 'date-fns'
 import { v4 as uuidv4 } from 'uuid'
 
 const statusConfig: Record<LoanRequest['status'], { color: string; icon: React.ElementType; label: string }> = {
@@ -27,6 +27,7 @@ export default function LoanRequestsPage() {
   const [filterStatus, setFilterStatus] = useState<LoanRequest['status'] | ''>('')
   const [reviewModal, setReviewModal] = useState<LoanRequest | null>(null)
   const [reviewNotes, setReviewNotes] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const [expanded, setExpanded] = useState<string | null>(null)
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
 
@@ -48,14 +49,44 @@ export default function LoanRequestsPage() {
     return state.members.find((m) => m.id === id)
   }
 
+  function openReview(req: LoanRequest) {
+    setReviewModal(req)
+    setReviewNotes('')
+    setDueDate(format(addMonths(new Date(), 6), 'yyyy-MM-dd'))
+  }
+
   function handleDecision(decision: 'approved' | 'rejected') {
     if (!reviewModal) return
+    if (decision === 'approved' && !dueDate) {
+      setToast({ msg: 'Set a due date before approving', type: 'error' })
+      return
+    }
     const notes = reviewNotes.trim() || undefined
     const member = state.members.find((m) => m.id === reviewModal.memberId)
-    dispatch({
-      type: 'UPDATE_LOAN_REQUEST',
-      payload: { ...reviewModal, status: decision, reviewNotes: notes },
-    })
+    const today = format(new Date(), 'yyyy-MM-dd')
+
+    // Mark request as approved/rejected
+    dispatch({ type: 'UPDATE_LOAN_REQUEST', payload: { ...reviewModal, status: decision, reviewNotes: notes } })
+
+    // If approved → create the actual loan immediately
+    if (decision === 'approved') {
+      const loanStatus = new Date(dueDate) < new Date() ? 'overdue' : 'active'
+      dispatch({
+        type: 'ADD_LOAN',
+        payload: {
+          id: uuidv4(),
+          memberId: reviewModal.memberId,
+          amount: reviewModal.amount,
+          balance: reviewModal.amount,
+          status: loanStatus,
+          issuedDate: today,
+          dueDate,
+          purpose: reviewModal.purpose,
+        },
+      })
+    }
+
+    // Notify member
     dispatch({
       type: 'ADD_NOTIFICATION',
       payload: {
@@ -64,15 +95,17 @@ export default function LoanRequestsPage() {
         type: decision === 'approved' ? 'loan_approved' : 'loan_rejected',
         title: decision === 'approved' ? 'Loan Request Approved' : 'Loan Request Declined',
         message: decision === 'approved'
-          ? `Your loan request of RWF ${reviewModal.amount.toLocaleString()} has been approved.${notes ? ` Note: ${notes}` : ''}`
+          ? `Your loan request of RWF ${reviewModal.amount.toLocaleString()} has been approved and added to your balance. Due date: ${format(parseISO(dueDate), 'dd MMM yyyy')}.${notes ? ` Note: ${notes}` : ''}`
           : `Your loan request of RWF ${reviewModal.amount.toLocaleString()} was not approved at this time.${notes ? ` Reason: ${notes}` : ''}`,
         date: new Date().toISOString(),
         read: false,
       },
     })
-    setToast({ msg: `Loan request ${decision} — ${member?.name} notified`, type: decision === 'approved' ? 'success' : 'error' })
+
+    setToast({ msg: `Loan request ${decision} — ${member?.name} notified${decision === 'approved' ? ' and loan created' : ''}`, type: decision === 'approved' ? 'success' : 'error' })
     setReviewModal(null)
     setReviewNotes('')
+    setDueDate('')
   }
 
   return (
@@ -158,7 +191,7 @@ export default function LoanRequestsPage() {
                   {req.status === 'pending' && (
                     <div className="flex gap-3 pt-1">
                       <button
-                        onClick={() => { setReviewModal(req); setReviewNotes('') }}
+                        onClick={() => openReview(req)}
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm transition-colors"
                       >
                         Review & Decide
@@ -221,12 +254,27 @@ export default function LoanRequestsPage() {
                 </div>
 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Repayment Due Date <span className="text-red-500">*</span>
+                    <span className="text-gray-400 font-normal ml-1">(required for approval)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    min={format(new Date(), 'yyyy-MM-dd')}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">Loan will be created immediately on approval with this due date.</p>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Review Note (optional)</label>
                   <textarea
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
                     placeholder="Add a note for the member..."
-                    rows={3}
+                    rows={2}
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
                   />
                 </div>

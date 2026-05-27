@@ -19,9 +19,12 @@ export default function PublishedReportsPage() {
     const totalSavings = state.contributions.reduce((s, c) => s + c.amount, 0)
     const totalLoansIssued = state.loans.reduce((s, l) => s + l.amount, 0)
     const overdueAmount = state.loans.filter((l) => l.status === 'overdue').reduce((s, l) => s + l.balance, 0)
+    const activeBalance = state.loans.filter((l) => l.status !== 'paid').reduce((s, l) => s + l.balance, 0)
     const totalRepaid = state.repayments.reduce((s, r) => s + r.amount, 0)
     const cashPosition = totalSavings + totalRepaid - totalLoansIssued
-    return { totalSavings, totalLoansIssued, overdueAmount, cashPosition }
+    const activeLoansCount = state.loans.filter((l) => l.status === 'active' || l.status === 'overdue').length
+    const overdueCount = state.loans.filter((l) => l.status === 'overdue').length
+    return { totalSavings, totalLoansIssued, overdueAmount, activeBalance, cashPosition, activeLoansCount, overdueCount }
   }, [state])
 
   const [form, setForm] = useState({
@@ -148,12 +151,13 @@ export default function PublishedReportsPage() {
       {/* Publish modal */}
       {showForm && (
         <Modal title="Publish Report" onClose={() => setShowForm(false)}>
-          <div className="bg-blue-50 rounded-xl p-4 mb-4 text-sm space-y-1">
-            <p className="font-semibold text-blue-900 mb-2">Current snapshot (auto-filled)</p>
+          <div className="bg-blue-50 rounded-xl p-4 mb-4 text-sm space-y-1.5">
+            <p className="font-semibold text-blue-900 mb-2">Live snapshot — captured at publish time</p>
             <div className="flex justify-between"><span className="text-gray-500">Total savings</span><span className="font-medium">{formatRWF(snapshot.totalSavings)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Loans issued</span><span className="font-medium">{formatRWF(snapshot.totalLoansIssued)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Overdue amount</span><span className={`font-medium ${snapshot.overdueAmount > 0 ? 'text-red-700' : ''}`}>{formatRWF(snapshot.overdueAmount)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Cash position</span><span className="font-medium">{formatRWF(snapshot.cashPosition)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Total loans issued</span><span className="font-medium">{formatRWF(snapshot.totalLoansIssued)}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Active balance outstanding</span><span className="font-medium text-blue-700">{formatRWF(snapshot.activeBalance)} ({snapshot.activeLoansCount} loans)</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Overdue amount</span><span className={`font-medium ${snapshot.overdueAmount > 0 ? 'text-red-700' : 'text-gray-700'}`}>{formatRWF(snapshot.overdueAmount)}{snapshot.overdueCount > 0 ? ` (${snapshot.overdueCount} loans)` : ''}</span></div>
+            <div className="flex justify-between border-t border-blue-200 pt-1.5 mt-1"><span className="text-gray-600 font-semibold">Cash position</span><span className={`font-bold ${snapshot.cashPosition >= 0 ? 'text-blue-800' : 'text-orange-700'}`}>{formatRWF(snapshot.cashPosition)}</span></div>
           </div>
           <form onSubmit={handlePublish} className="space-y-4">
             <div>

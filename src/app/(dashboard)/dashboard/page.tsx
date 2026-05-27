@@ -3,7 +3,8 @@
 import { useMemo } from 'react'
 import { useApp, formatRWF, getOverdueLoans } from '@/lib/store'
 import StatCard from '@/components/StatCard'
-import { Users, TrendingUp, CreditCard, AlertTriangle, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { Users, TrendingUp, CreditCard, AlertTriangle, Clock, InboxIcon } from 'lucide-react'
 import {
   BarChart,
   Bar,
@@ -31,6 +32,7 @@ export default function DashboardPage() {
   const activeLoans = useMemo(() => loans.filter((l) => l.status !== 'paid'), [loans])
   const overdueLoans = useMemo(() => getOverdueLoans(loans), [loans])
   const totalLoanBalance = useMemo(() => activeLoans.reduce((s, l) => s + l.balance, 0), [activeLoans])
+  const pendingRequests = useMemo(() => state.loanRequests.filter((r) => r.status === 'pending'), [state.loanRequests])
 
   // Monthly contributions chart data
   const monthlyData = useMemo(() => {
@@ -93,21 +95,36 @@ export default function DashboardPage() {
         <p className="text-gray-500 mt-1">Group financial overview</p>
       </div>
 
-      {/* Overdue alert */}
-      {overdueLoans.length > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
-          <div>
-            <p className="font-semibold text-red-800">
-              {overdueLoans.length} loan{overdueLoans.length > 1 ? 's' : ''} overdue
-            </p>
-            <p className="text-red-600 text-sm">
-              Total overdue:{' '}
-              {formatRWF(overdueLoans.reduce((s, l) => s + l.balance, 0))} — follow up required
-            </p>
+      {/* Alert banners */}
+      <div className="space-y-3">
+        {overdueLoans.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-red-800">
+                {overdueLoans.length} loan{overdueLoans.length > 1 ? 's' : ''} overdue
+              </p>
+              <p className="text-red-600 text-sm">
+                Total overdue: {formatRWF(overdueLoans.reduce((s, l) => s + l.balance, 0))} — follow up required
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+        {pendingRequests.length > 0 && (
+          <Link href="/loan-requests" className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center gap-3 hover:bg-orange-100 transition-colors">
+            <InboxIcon className="w-5 h-5 text-orange-600 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="font-semibold text-orange-800">
+                {pendingRequests.length} loan request{pendingRequests.length > 1 ? 's' : ''} awaiting review
+              </p>
+              <p className="text-orange-600 text-sm">
+                {pendingRequests.map((r) => members.find((m) => m.id === r.memberId)?.name ?? '').filter(Boolean).join(', ')}
+              </p>
+            </div>
+            <span className="text-orange-600 text-sm font-medium flex-shrink-0">Review →</span>
+          </Link>
+        )}
+      </div>
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
