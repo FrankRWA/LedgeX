@@ -7,6 +7,7 @@ import Modal from '@/components/Modal'
 import Toast from '@/components/Toast'
 import { InboxIcon, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
+import { v4 as uuidv4 } from 'uuid'
 
 const statusConfig: Record<LoanRequest['status'], { color: string; icon: React.ElementType; label: string }> = {
   pending: { color: 'bg-orange-100 text-orange-700', icon: Clock, label: 'Pending' },
@@ -49,11 +50,27 @@ export default function LoanRequestsPage() {
 
   function handleDecision(decision: 'approved' | 'rejected') {
     if (!reviewModal) return
+    const notes = reviewNotes.trim() || undefined
+    const member = state.members.find((m) => m.id === reviewModal.memberId)
     dispatch({
       type: 'UPDATE_LOAN_REQUEST',
-      payload: { ...reviewModal, status: decision, reviewNotes: reviewNotes.trim() || undefined },
+      payload: { ...reviewModal, status: decision, reviewNotes: notes },
     })
-    setToast({ msg: `Loan request ${decision}`, type: decision === 'approved' ? 'success' : 'error' })
+    dispatch({
+      type: 'ADD_NOTIFICATION',
+      payload: {
+        id: uuidv4(),
+        memberId: reviewModal.memberId,
+        type: decision === 'approved' ? 'loan_approved' : 'loan_rejected',
+        title: decision === 'approved' ? 'Loan Request Approved' : 'Loan Request Declined',
+        message: decision === 'approved'
+          ? `Your loan request of RWF ${reviewModal.amount.toLocaleString()} has been approved.${notes ? ` Note: ${notes}` : ''}`
+          : `Your loan request of RWF ${reviewModal.amount.toLocaleString()} was not approved at this time.${notes ? ` Reason: ${notes}` : ''}`,
+        date: new Date().toISOString(),
+        read: false,
+      },
+    })
+    setToast({ msg: `Loan request ${decision} — ${member?.name} notified`, type: decision === 'approved' ? 'success' : 'error' })
     setReviewModal(null)
     setReviewNotes('')
   }

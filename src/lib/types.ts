@@ -56,6 +56,27 @@ export interface Meeting {
   date: string
   description?: string
   attendees: string[]
+  finesIssued: boolean
+}
+
+export interface Fine {
+  id: string
+  memberId: string
+  meetingId: string
+  meetingTitle: string
+  amount: number
+  date: string
+  settled: boolean
+}
+
+export interface Notification {
+  id: string
+  memberId: string
+  type: 'fine' | 'loan_approved' | 'loan_rejected'
+  title: string
+  message: string
+  date: string
+  read: boolean
 }
 
 export interface PublishedReport {
@@ -95,6 +116,8 @@ export interface AppState {
   meetings: Meeting[]
   publishedReports: PublishedReport[]
   loanRequests: LoanRequest[]
+  fines: Fine[]
+  notifications: Notification[]
   fineSettings: FineSettings
   groupName: string
   currentUser: { name: string; email: string } | null
@@ -121,6 +144,11 @@ export type AppAction =
   | { type: 'DELETE_PUBLISHED_REPORT'; payload: string }
   | { type: 'ADD_LOAN_REQUEST'; payload: LoanRequest }
   | { type: 'UPDATE_LOAN_REQUEST'; payload: LoanRequest }
+  | { type: 'ISSUE_MEETING_FINES'; payload: { meetingId: string; fines: Fine[]; notifications: Notification[] } }
+  | { type: 'SETTLE_FINE'; payload: string }
+  | { type: 'ADD_NOTIFICATION'; payload: Notification }
+  | { type: 'MARK_NOTIFICATION_READ'; payload: string }
+  | { type: 'MARK_ALL_NOTIFICATIONS_READ'; payload: string }
   | { type: 'UPDATE_FINE_SETTINGS'; payload: FineSettings }
   | { type: 'UPDATE_GROUP_NAME'; payload: string }
   | { type: 'SET_CURRENT_USER'; payload: { name: string; email: string } }

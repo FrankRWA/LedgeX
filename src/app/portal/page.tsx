@@ -7,7 +7,7 @@ import { Loan } from '@/lib/types'
 import {
   BookOpen, LogOut, TrendingUp, CreditCard, CheckCircle,
   AlertTriangle, Clock, BarChart3, Megaphone, Send, MessageCircle,
-  Wallet, ChevronDown, ChevronUp,
+  Wallet, ChevronDown, ChevronUp, Bell, X,
 } from 'lucide-react'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { v4 as uuidv4 } from 'uuid'
@@ -36,6 +36,7 @@ export default function MemberPortalPage() {
   const router = useRouter()
   const [tab, setTab] = useState<Tab>('overview')
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
+  const [showNotifications, setShowNotifications] = useState(false)
   const [expandedLoan, setExpandedLoan] = useState<string | null>(null)
   const [expandedAnn, setExpandedAnn] = useState<string | null>(
     state.announcements.find((a) => a.pinned)?.id ?? state.announcements[0]?.id ?? null
@@ -77,8 +78,20 @@ export default function MemberPortalPage() {
     () => [...state.loanRequests].filter((r) => r.memberId === state.currentMemberId).sort((a, b) => b.requestedAt.localeCompare(a.requestedAt)),
     [state.loanRequests, state.currentMemberId]
   )
-
   const hasPendingRequest = myRequests.some((r) => r.status === 'pending')
+
+  const myNotifications = useMemo(
+    () => [...(state.notifications ?? [])].filter((n) => n.memberId === state.currentMemberId).sort((a, b) => b.date.localeCompare(a.date)),
+    [state.notifications, state.currentMemberId]
+  )
+  const unreadCount = myNotifications.filter((n) => !n.read).length
+
+  const myFines = useMemo(
+    () => (state.fines ?? []).filter((f) => f.memberId === state.currentMemberId),
+    [state.fines, state.currentMemberId]
+  )
+  const unsettledFines = myFines.filter((f) => !f.settled)
+  const totalFineBalance = unsettledFines.reduce((s, f) => s + f.amount, 0)
 
   function getMemberName(id: string) {
     return state.members.find((m) => m.id === id)?.name ?? 'Unknown'
@@ -124,7 +137,7 @@ export default function MemberPortalPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top nav */}
-      <header className="bg-blue-900 text-white px-4 py-4 sticky top-0 z-10">
+      <header className="bg-blue-900 text-white px-4 py-4 sticky top-0 z-20">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
             <BookOpen className="w-5 h-5 opacity-80" />
@@ -133,11 +146,70 @@ export default function MemberPortalPage() {
               <p className="text-blue-300 text-xs">{state.groupName}</p>
             </div>
           </div>
-          <button onClick={() => { dispatch({ type: 'LOGOUT_MEMBER' }); router.push('/member-login') }} className="flex items-center gap-1.5 text-blue-200 hover:text-white text-sm">
-            <LogOut className="w-4 h-4" />Logout
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Notification bell */}
+            <button
+              onClick={() => {
+                setShowNotifications(!showNotifications)
+                if (!showNotifications && unreadCount > 0) {
+                  dispatch({ type: 'MARK_ALL_NOTIFICATIONS_READ', payload: state.currentMemberId! })
+                }
+              }}
+              className="relative text-blue-200 hover:text-white transition-colors"
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full text-xs font-bold flex items-center justify-center text-white">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            <button onClick={() => { dispatch({ type: 'LOGOUT_MEMBER' }); router.push('/member-login') }} className="flex items-center gap-1.5 text-blue-200 hover:text-white text-sm">
+              <LogOut className="w-4 h-4" />Logout
+            </button>
+          </div>
         </div>
       </header>
+
+      {/* Notification panel */}
+      {showNotifications && (
+        <div className="fixed inset-0 z-30 flex items-start justify-center pt-16 px-4 bg-black/40" onClick={() => setShowNotifications(false)}>
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <h3 className="font-bold text-gray-900">Notifications</h3>
+              <button onClick={() => setShowNotifications(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto">
+              {myNotifications.length === 0 ? (
+                <div className="text-center py-10 text-gray-400">
+                  <Bell className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  <p className="text-sm">No notifications yet</p>
+                </div>
+              ) : (
+                myNotifications.map((n) => (
+                  <div key={n.id} className={`px-5 py-4 border-b border-gray-50 ${!n.read ? 'bg-blue-50/50' : ''}`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                        n.type === 'fine' ? 'bg-orange-100' : n.type === 'loan_approved' ? 'bg-green-100' : 'bg-red-100'
+                      }`}>
+                        {n.type === 'fine' ? <AlertTriangle className="w-4 h-4 text-orange-600" /> :
+                         n.type === 'loan_approved' ? <CheckCircle className="w-4 h-4 text-green-600" /> :
+                         <X className="w-4 h-4 text-red-600" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-sm text-gray-900">{n.title}</p>
+                        <p className="text-sm text-gray-600 mt-0.5">{n.message}</p>
+                        <p className="text-xs text-gray-400 mt-1">{format(parseISO(n.date), 'dd MMM yyyy · HH:mm')}</p>
+                      </div>
+                      {!n.read && <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1" />}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-2xl mx-auto pb-12">
         {/* Member card */}
@@ -201,6 +273,29 @@ export default function MemberPortalPage() {
                   <p className="text-gray-400 text-xs mt-1">{totalOwed === 0 ? 'All clear' : 'Outstanding'}</p>
                 </div>
               </div>
+
+              {/* Outstanding fines */}
+              {unsettledFines.length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <AlertTriangle className="w-4 h-4 text-orange-600" />
+                    <p className="font-semibold text-orange-900 text-sm">Outstanding Attendance Fines</p>
+                  </div>
+                  <div className="space-y-2">
+                    {unsettledFines.map((f) => (
+                      <div key={f.id} className="flex justify-between text-sm">
+                        <span className="text-orange-800">{f.meetingTitle}</span>
+                        <span className="font-semibold text-orange-700">{formatRWF(f.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-between font-bold text-sm mt-3 pt-2 border-t border-orange-200">
+                    <span className="text-orange-900">Total fines</span>
+                    <span className="text-orange-700">{formatRWF(totalFineBalance)}</span>
+                  </div>
+                  <p className="text-xs text-orange-600 mt-2">These fines have been added to your loan balance. Contact your group leader to settle.</p>
+                </div>
+              )}
 
               {/* My Loans */}
               <section>

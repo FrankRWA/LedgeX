@@ -1,7 +1,7 @@
 import {
   Member, Contribution, Loan, Repayment,
   Announcement, AnnouncementComment, Meeting,
-  PublishedReport, LoanRequest, FineSettings,
+  PublishedReport, LoanRequest, FineSettings, Fine, Notification,
 } from './types'
 
 export const seedMembers: Member[] = [
@@ -85,10 +85,25 @@ export const seedAnnouncementComments: AnnouncementComment[] = [
 ]
 
 export const seedMeetings: Meeting[] = [
-  { id: 'mt1', title: 'January General Meeting', date: '2024-01-27', description: 'Inaugural meeting, election of officers, group rules discussion', attendees: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'] },
-  { id: 'mt2', title: 'February General Meeting', date: '2024-02-24', description: 'Review January contributions, approve first loan requests', attendees: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'] },
-  { id: 'mt3', title: 'March General Meeting', date: '2024-03-30', description: 'Welcome new members, review financials', attendees: ['m1', 'm2', 'm3', 'm4', 'm6', 'm7', 'm8'] },
-  { id: 'mt4', title: 'April General Meeting', date: '2024-04-27', description: 'Quarterly review, loan repayment updates', attendees: ['m1', 'm2', 'm3', 'm5', 'm6', 'm7', 'm8'] },
+  { id: 'mt1', title: 'January General Meeting', date: '2024-01-27', description: 'Inaugural meeting, election of officers, group rules discussion', attendees: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'], finesIssued: true },
+  { id: 'mt2', title: 'February General Meeting', date: '2024-02-24', description: 'Review January contributions, approve first loan requests', attendees: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'], finesIssued: true },
+  { id: 'mt3', title: 'March General Meeting', date: '2024-03-30', description: 'Welcome new members, review financials', attendees: ['m1', 'm2', 'm3', 'm4', 'm6', 'm7', 'm8'], finesIssued: true },
+  { id: 'mt4', title: 'April General Meeting', date: '2024-04-27', description: 'Quarterly review, loan repayment updates', attendees: ['m1', 'm2', 'm3', 'm5', 'm6', 'm7', 'm8'], finesIssued: false },
+]
+
+export const seedFines: Fine[] = [
+  { id: 'f1', memberId: 'm7', meetingId: 'mt1', meetingTitle: 'January General Meeting', amount: 5000, date: '2024-01-27', settled: true },
+  { id: 'f2', memberId: 'm8', meetingId: 'mt1', meetingTitle: 'January General Meeting', amount: 5000, date: '2024-01-27', settled: true },
+  { id: 'f3', memberId: 'm7', meetingId: 'mt2', meetingTitle: 'February General Meeting', amount: 5000, date: '2024-02-24', settled: false },
+  { id: 'f4', memberId: 'm8', meetingId: 'mt2', meetingTitle: 'February General Meeting', amount: 5000, date: '2024-02-24', settled: false },
+  { id: 'f5', memberId: 'm5', meetingId: 'mt3', meetingTitle: 'March General Meeting', amount: 5000, date: '2024-03-30', settled: false },
+]
+
+export const seedNotifications: Notification[] = [
+  { id: 'n1', memberId: 'm7', type: 'fine', title: 'Attendance Fine Issued', message: 'You were absent from February General Meeting. A fine of RWF 5,000 has been added to your outstanding balance.', date: '2024-02-24T18:00:00Z', read: false },
+  { id: 'n2', memberId: 'm8', type: 'fine', title: 'Attendance Fine Issued', message: 'You were absent from February General Meeting. A fine of RWF 5,000 has been added to your outstanding balance.', date: '2024-02-24T18:00:00Z', read: false },
+  { id: 'n3', memberId: 'm5', type: 'fine', title: 'Attendance Fine Issued', message: 'You were absent from March General Meeting. A fine of RWF 5,000 has been added to your outstanding balance.', date: '2024-03-30T18:00:00Z', read: false },
+  { id: 'n4', memberId: 'm5', type: 'loan_approved', title: 'Loan Request Approved', message: 'Your loan request of RWF 80,000 has been approved. Good repayment history.', date: '2024-04-15T12:00:00Z', read: true },
 ]
 
 export const seedPublishedReports: PublishedReport[] = [

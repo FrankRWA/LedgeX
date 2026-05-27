@@ -6,6 +6,7 @@ import {
   seedMembers, seedContributions, seedLoans, seedRepayments,
   seedAnnouncements, seedAnnouncementComments, seedMeetings,
   seedPublishedReports, seedLoanRequests, seedFineSettings,
+  seedFines, seedNotifications,
 } from './seedData'
 
 const STORAGE_KEY = 'ledgex_state'
@@ -124,6 +125,65 @@ function reducer(state: AppState, action: AppAction): AppState {
       newState = { ...state, announcementComments: [...state.announcementComments, action.payload] }
       break
 
+    case 'ISSUE_MEETING_FINES': {
+      const { meetingId, fines: newFines, notifications: newNotifs } = action.payload
+      // mark meeting as finesIssued
+      const updatedMeetings = state.meetings.map((m) =>
+        m.id === meetingId ? { ...m, finesIssued: true } : m
+      )
+      // bump active loan balance for each fined member, or just record the fine
+      let updatedLoans = [...state.loans]
+      newFines.forEach((fine) => {
+        const activeLoans = updatedLoans.filter(
+          (l) => l.memberId === fine.memberId && (l.status === 'active' || l.status === 'overdue')
+        )
+        if (activeLoans.length > 0) {
+          // add fine to the most recent active loan balance
+          const target = activeLoans.sort((a, b) => b.issuedDate.localeCompare(a.issuedDate))[0]
+          updatedLoans = updatedLoans.map((l) =>
+            l.id === target.id ? { ...l, balance: l.balance + fine.amount } : l
+          )
+        }
+      })
+      newState = {
+        ...state,
+        meetings: updatedMeetings,
+        loans: updatedLoans,
+        fines: [...state.fines, ...newFines],
+        notifications: [...state.notifications, ...newNotifs],
+      }
+      break
+    }
+
+    case 'SETTLE_FINE':
+      newState = {
+        ...state,
+        fines: state.fines.map((f) => (f.id === action.payload ? { ...f, settled: true } : f)),
+      }
+      break
+
+    case 'ADD_NOTIFICATION':
+      newState = { ...state, notifications: [...state.notifications, action.payload] }
+      break
+
+    case 'MARK_NOTIFICATION_READ':
+      newState = {
+        ...state,
+        notifications: state.notifications.map((n) =>
+          n.id === action.payload ? { ...n, read: true } : n
+        ),
+      }
+      break
+
+    case 'MARK_ALL_NOTIFICATIONS_READ':
+      newState = {
+        ...state,
+        notifications: state.notifications.map((n) =>
+          n.memberId === action.payload ? { ...n, read: true } : n
+        ),
+      }
+      break
+
     case 'ADD_MEETING':
       newState = { ...state, meetings: [action.payload, ...state.meetings] }
       break
@@ -178,6 +238,8 @@ const initialState: AppState = {
   meetings: seedMeetings,
   publishedReports: seedPublishedReports,
   loanRequests: seedLoanRequests,
+  fines: seedFines,
+  notifications: seedNotifications,
   fineSettings: seedFineSettings,
   groupName: 'IKIMINA Ubumwe',
   currentUser: null,
@@ -206,10 +268,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               ...parsed,
               announcements: parsed.announcements ?? initialState.announcements,
               announcementComments: parsed.announcementComments ?? initialState.announcementComments,
-              meetings: parsed.meetings ?? initialState.meetings,
+              meetings: (parsed.meetings ?? initialState.meetings).map((m) => ({
+                ...m,
+                finesIssued: m.finesIssued ?? false,
+              })),
               publishedReports: parsed.publishedReports ?? initialState.publishedReports,
               loanRequests: parsed.loanRequests ?? initialState.loanRequests,
               fineSettings: parsed.fineSettings ?? initialState.fineSettings,
+              fines: parsed.fines ?? initialState.fines,
+              notifications: parsed.notifications ?? initialState.notifications,
             },
           })
         } catch {
