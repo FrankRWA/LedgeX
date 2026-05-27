@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApp, formatRWF, getLoanRepayments, getMemberRiskStatus } from '@/lib/store'
 import { Loan } from '@/lib/types'
 import {
   BookOpen, LogOut, TrendingUp, CreditCard, CheckCircle,
   AlertTriangle, Clock, BarChart3, Megaphone, Send, MessageCircle,
-  Wallet, ChevronDown, ChevronUp, Bell, X,
+  Wallet, ChevronDown, ChevronUp, Bell, X, Camera,
 } from 'lucide-react'
 import { format, parseISO, differenceInDays } from 'date-fns'
 import { v4 as uuidv4 } from 'uuid'
@@ -43,6 +43,19 @@ export default function MemberPortalPage() {
   )
   const [commentText, setCommentText] = useState<Record<string, string>>({})
   const [loanReqForm, setLoanReqForm] = useState({ amount: '', purpose: '' })
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !member) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      dispatch({ type: 'UPDATE_MEMBER', payload: { ...member, avatar: reader.result as string } })
+      setToast({ msg: 'Profile picture updated', type: 'success' })
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
 
   const member = useMemo(
     () => state.members.find((m) => m.id === state.currentMemberId) ?? null,
@@ -140,7 +153,13 @@ export default function MemberPortalPage() {
       <header className="bg-blue-900 text-white px-4 py-4 sticky top-0 z-20">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <BookOpen className="w-5 h-5 opacity-80" />
+            <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+              {state.groupLogo ? (
+                <img src={state.groupLogo} alt="Group logo" className="w-full h-full object-cover" />
+              ) : (
+                <BookOpen className="w-4 h-4 opacity-80" />
+              )}
+            </div>
             <div>
               <p className="font-bold text-sm leading-none">LedgeX</p>
               <p className="text-blue-300 text-xs">{state.groupName}</p>
@@ -215,8 +234,26 @@ export default function MemberPortalPage() {
         {/* Member card */}
         <div className="bg-gradient-to-r from-blue-800 to-blue-700 px-4 pt-5 pb-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-xl">{initials}</span>
+            <div className="relative flex-shrink-0">
+              <div
+                className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center overflow-hidden cursor-pointer"
+                onClick={() => avatarInputRef.current?.click()}
+                title="Change profile picture"
+              >
+                {member.avatar ? (
+                  <img src={member.avatar} alt={member.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white font-bold text-xl">{initials}</span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-blue-600 hover:bg-blue-500 rounded-full flex items-center justify-center shadow"
+              >
+                <Camera className="w-3 h-3 text-white" />
+              </button>
+              <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
             </div>
             <div className="flex-1">
               <p className="text-blue-200 text-sm">Welcome back</p>

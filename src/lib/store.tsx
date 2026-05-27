@@ -36,6 +36,10 @@ function reducer(state: AppState, action: AppAction): AppState {
       newState = { ...state, groupName: action.payload }
       break
 
+    case 'SET_GROUP_LOGO':
+      newState = { ...state, groupLogo: action.payload }
+      break
+
     case 'UPDATE_FINE_SETTINGS':
       newState = { ...state, fineSettings: action.payload }
       break
@@ -242,6 +246,7 @@ const initialState: AppState = {
   notifications: seedNotifications,
   fineSettings: seedFineSettings,
   groupName: 'IKIMINA Ubumwe',
+  groupLogo: null,
   currentUser: null,
   currentMemberId: null,
 }
@@ -277,6 +282,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
               fineSettings: parsed.fineSettings ?? initialState.fineSettings,
               fines: parsed.fines ?? initialState.fines,
               notifications: parsed.notifications ?? initialState.notifications,
+              groupLogo: parsed.groupLogo ?? null,
             },
           })
         } catch {

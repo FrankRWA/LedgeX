@@ -6,6 +6,7 @@ export interface Member {
   role: 'admin' | 'treasurer' | 'member'
   joinedDate: string
   password?: string
+  avatar?: string
 }
 
 export interface Contribution {
@@ -120,6 +121,7 @@ export interface AppState {
   notifications: Notification[]
   fineSettings: FineSettings
   groupName: string
+  groupLogo: string | null
   currentUser: { name: string; email: string } | null
   currentMemberId: string | null
 }
@@ -151,6 +153,7 @@ export type AppAction =
   | { type: 'MARK_ALL_NOTIFICATIONS_READ'; payload: string }
   | { type: 'UPDATE_FINE_SETTINGS'; payload: FineSettings }
   | { type: 'UPDATE_GROUP_NAME'; payload: string }
+  | { type: 'SET_GROUP_LOGO'; payload: string | null }
   | { type: 'SET_CURRENT_USER'; payload: { name: string; email: string } }
   | { type: 'SET_CURRENT_MEMBER'; payload: string }
   | { type: 'LOGOUT' }

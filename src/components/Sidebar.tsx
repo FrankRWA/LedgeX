@@ -46,8 +46,12 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-6 border-b border-blue-800">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-            <BookOpen className="w-5 h-5 text-blue-800" />
+          <div className="w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            {state.groupLogo ? (
+              <img src={state.groupLogo} alt="Group logo" className="w-full h-full object-cover" />
+            ) : (
+              <BookOpen className="w-5 h-5 text-blue-800" />
+            )}
           </div>
           <div>
             <p className="font-bold text-lg leading-none">LedgeX</p>

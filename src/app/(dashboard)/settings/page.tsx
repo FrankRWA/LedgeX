@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useApp } from '@/lib/store'
 import Toast from '@/components/Toast'
-import { Settings, BookOpen, KeyRound, Eye, EyeOff, Save, Check, AlertCircle } from 'lucide-react'
+import { Settings, BookOpen, KeyRound, Eye, EyeOff, Save, Check, AlertCircle, Camera } from 'lucide-react'
 
 export default function SettingsPage() {
   const { state, dispatch } = useApp()
@@ -12,6 +12,21 @@ export default function SettingsPage() {
   // Group name
   const [groupName, setGroupName] = useState(state.groupName)
   const [groupNameSaved, setGroupNameSaved] = useState(false)
+
+  // Group logo
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      dispatch({ type: 'SET_GROUP_LOGO', payload: reader.result as string })
+      setToast({ msg: 'Group logo updated', type: 'success' })
+    }
+    reader.readAsDataURL(file)
+    e.target.value = ''
+  }
 
   // Fine settings
   const [fines, setFines] = useState(state.fineSettings)
@@ -103,6 +118,40 @@ export default function SettingsPage() {
           <div>
             <h2 className="font-semibold text-gray-900">Group Information</h2>
             <p className="text-gray-400 text-xs">Shown across the platform and member portal</p>
+          </div>
+        </div>
+
+        {/* Logo upload */}
+        <div className="flex items-center gap-5 mb-6">
+          <div className="relative flex-shrink-0">
+            <div className="w-20 h-20 bg-blue-100 rounded-2xl overflow-hidden flex items-center justify-center border-2 border-blue-200">
+              {state.groupLogo ? (
+                <img src={state.groupLogo} alt="Group logo" className="w-full h-full object-cover" />
+              ) : (
+                <BookOpen className="w-8 h-8 text-blue-500" />
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => logoInputRef.current?.click()}
+              className="absolute -bottom-1.5 -right-1.5 w-7 h-7 bg-blue-800 hover:bg-blue-900 rounded-full flex items-center justify-center shadow-md transition-colors"
+              title="Upload logo"
+            >
+              <Camera className="w-3.5 h-3.5 text-white" />
+            </button>
+            <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoChange} />
+          </div>
+          <div>
+            <p className="font-medium text-gray-900 text-sm">Group Logo</p>
+            <p className="text-gray-400 text-xs mt-0.5">Shown in the sidebar and member portal</p>
+            <button type="button" onClick={() => logoInputRef.current?.click()} className="mt-2 text-xs text-blue-700 hover:underline font-medium">
+              {state.groupLogo ? 'Change logo' : 'Upload logo'}
+            </button>
+            {state.groupLogo && (
+              <button type="button" onClick={() => { dispatch({ type: 'SET_GROUP_LOGO', payload: null }); setToast({ msg: 'Logo removed', type: 'success' }) }} className="ml-3 text-xs text-red-500 hover:underline">
+                Remove
+              </button>
+            )}
           </div>
         </div>
 
