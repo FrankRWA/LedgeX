@@ -5,7 +5,7 @@ import { useApp, formatRWF, getMemberContributions, getMemberLoans } from '@/lib
 import { Member } from '@/lib/types'
 import Modal from '@/components/Modal'
 import Toast from '@/components/Toast'
-import { Plus, Pencil, Trash2, Users, Shield, Coins } from 'lucide-react'
+import { Plus, Pencil, Trash2, Users, Shield, Coins, KeyRound, Eye, EyeOff } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { format, parseISO } from 'date-fns'
 
@@ -24,7 +24,7 @@ const roleIcons: Record<Member['role'], React.ElementType> = {
 }
 
 function emptyForm() {
-  return { name: '', phone: '', email: '', role: 'member' as Member['role'], joinedDate: format(new Date(), 'yyyy-MM-dd') }
+  return { name: '', phone: '', email: '', role: 'member' as Member['role'], joinedDate: format(new Date(), 'yyyy-MM-dd'), password: '' }
 }
 
 export default function MembersPage() {
@@ -35,16 +35,19 @@ export default function MembersPage() {
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   function openAdd() {
     setEditTarget(null)
     setForm(emptyForm())
+    setShowPassword(false)
     setShowForm(true)
   }
 
   function openEdit(m: Member) {
     setEditTarget(m)
-    setForm({ name: m.name, phone: m.phone, email: m.email, role: m.role, joinedDate: m.joinedDate })
+    setForm({ name: m.name, phone: m.phone, email: m.email, role: m.role, joinedDate: m.joinedDate, password: m.password ?? '' })
+    setShowPassword(false)
     setShowForm(true)
   }
 
@@ -55,10 +58,10 @@ export default function MembersPage() {
       return
     }
     if (editTarget) {
-      dispatch({ type: 'UPDATE_MEMBER', payload: { ...editTarget, ...form } })
+      dispatch({ type: 'UPDATE_MEMBER', payload: { ...editTarget, ...form, password: form.password || editTarget.password } })
       setToast({ msg: 'Member updated successfully', type: 'success' })
     } else {
-      dispatch({ type: 'ADD_MEMBER', payload: { id: uuidv4(), ...form } })
+      dispatch({ type: 'ADD_MEMBER', payload: { id: uuidv4(), ...form, password: form.password || undefined } })
       setToast({ msg: 'Member added successfully', type: 'success' })
     }
     setShowForm(false)
@@ -113,6 +116,7 @@ export default function MembersPage() {
               <th className="text-left px-4 py-3 font-semibold text-gray-600">Role</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600">Total Contributions</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600">Active Loans</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-600">Portal Password</th>
               <th className="text-right px-4 py-3 font-semibold text-gray-600">Joined</th>
               <th className="px-4 py-3"></th>
             </tr>
@@ -153,6 +157,19 @@ export default function MembersPage() {
                       <span className="text-blue-700 font-medium">{memberLoans.length}</span>
                     ) : (
                       <span className="text-gray-400">—</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {m.password ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full font-medium">
+                        <KeyRound className="w-3 h-3" />
+                        Set
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full font-medium">
+                        <KeyRound className="w-3 h-3" />
+                        Not set
+                      </span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right text-gray-500">
@@ -247,6 +264,32 @@ export default function MembersPage() {
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+                <KeyRound className="w-3.5 h-3.5 text-gray-400" />
+                Member Portal Password
+                {editTarget?.password && <span className="text-gray-400 font-normal">(leave blank to keep current)</span>}
+              </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder={editTarget?.password ? '••••••••' : 'Set a password for member login'}
+                  className="w-full px-4 py-2.5 pr-10 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">
+                Share this privately with the member so they can access their personal portal.
+              </p>
             </div>
             <div className="flex gap-3 pt-2">
               <button

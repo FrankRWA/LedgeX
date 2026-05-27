@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useApp } from '@/lib/store'
 import { BookOpen, Shield, TrendingUp, Users } from 'lucide-react'
 
@@ -117,7 +118,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500">
+              Are you a group member?{' '}
+              <Link href="/member-login" className="text-blue-700 font-semibold hover:underline">
+                Member Login →
+              </Link>
+            </p>
+          </div>
+
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
             <p className="text-xs text-gray-500 text-center">
               This is a demo application. Data is stored locally in your browser.
             </p>

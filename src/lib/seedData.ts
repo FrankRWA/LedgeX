@@ -1,14 +1,14 @@
 import { Member, Contribution, Loan, Repayment } from './types'
 
 export const seedMembers: Member[] = [
-  { id: 'm1', name: 'Uwimana Jean Pierre', phone: '+250788123456', email: 'jean@example.com', role: 'admin', joinedDate: '2024-01-15' },
-  { id: 'm2', name: 'Mukamana Grace', phone: '+250788234567', email: 'grace@example.com', role: 'treasurer', joinedDate: '2024-01-15' },
-  { id: 'm3', name: 'Habimana Patrick', phone: '+250788345678', email: 'patrick@example.com', role: 'member', joinedDate: '2024-01-20' },
-  { id: 'm4', name: 'Umurungi Celestine', phone: '+250788456789', email: 'celestine@example.com', role: 'member', joinedDate: '2024-02-01' },
-  { id: 'm5', name: 'Nkurunziza Eric', phone: '+250788567890', email: 'eric@example.com', role: 'member', joinedDate: '2024-02-01' },
-  { id: 'm6', name: 'Iradukunda Alice', phone: '+250788678901', email: 'alice@example.com', role: 'member', joinedDate: '2024-02-10' },
-  { id: 'm7', name: 'Mutabazi David', phone: '+250788789012', email: 'david@example.com', role: 'member', joinedDate: '2024-03-01' },
-  { id: 'm8', name: 'Nyirahabimana Rose', phone: '+250788890123', email: 'rose@example.com', role: 'member', joinedDate: '2024-03-15' },
+  { id: 'm1', name: 'Uwimana Jean Pierre', phone: '+250788123456', email: 'jean@example.com', role: 'admin', joinedDate: '2024-01-15', password: 'jean2024' },
+  { id: 'm2', name: 'Mukamana Grace', phone: '+250788234567', email: 'grace@example.com', role: 'treasurer', joinedDate: '2024-01-15', password: 'grace2024' },
+  { id: 'm3', name: 'Habimana Patrick', phone: '+250788345678', email: 'patrick@example.com', role: 'member', joinedDate: '2024-01-20', password: 'patrick2024' },
+  { id: 'm4', name: 'Umurungi Celestine', phone: '+250788456789', email: 'celestine@example.com', role: 'member', joinedDate: '2024-02-01', password: 'celestine2024' },
+  { id: 'm5', name: 'Nkurunziza Eric', phone: '+250788567890', email: 'eric@example.com', role: 'member', joinedDate: '2024-02-01', password: 'eric2024' },
+  { id: 'm6', name: 'Iradukunda Alice', phone: '+250788678901', email: 'alice@example.com', role: 'member', joinedDate: '2024-02-10', password: 'alice2024' },
+  { id: 'm7', name: 'Mutabazi David', phone: '+250788789012', email: 'david@example.com', role: 'member', joinedDate: '2024-03-01', password: 'david2024' },
+  { id: 'm8', name: 'Nyirahabimana Rose', phone: '+250788890123', email: 'rose@example.com', role: 'member', joinedDate: '2024-03-15', password: 'rose2024' },
 ]
 
 export const seedContributions: Contribution[] = [

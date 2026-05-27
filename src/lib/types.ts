@@ -5,6 +5,7 @@ export interface Member {
   email: string
   role: 'admin' | 'treasurer' | 'member'
   joinedDate: string
+  password?: string
 }
 
 export interface Contribution {
@@ -40,6 +41,7 @@ export interface AppState {
   repayments: Repayment[]
   groupName: string
   currentUser: { name: string; email: string } | null
+  currentMemberId: string | null
 }
 
 export type AppAction =
@@ -52,6 +54,8 @@ export type AppAction =
   | { type: 'UPDATE_LOAN'; payload: Loan }
   | { type: 'ADD_REPAYMENT'; payload: Repayment }
   | { type: 'SET_CURRENT_USER'; payload: { name: string; email: string } }
+  | { type: 'SET_CURRENT_MEMBER'; payload: string }
   | { type: 'LOGOUT' }
+  | { type: 'LOGOUT_MEMBER' }
   | { type: 'LOAD_STATE'; payload: AppState }
   | { type: 'RECALCULATE_LOANS' }

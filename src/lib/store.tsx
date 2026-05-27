@@ -33,8 +33,16 @@ function reducer(state: AppState, action: AppAction): AppState {
       newState = { ...state, currentUser: action.payload }
       break
 
+    case 'SET_CURRENT_MEMBER':
+      newState = { ...state, currentMemberId: action.payload }
+      break
+
     case 'LOGOUT':
       newState = { ...state, currentUser: null }
+      break
+
+    case 'LOGOUT_MEMBER':
+      newState = { ...state, currentMemberId: null }
       break
 
     case 'ADD_MEMBER':
@@ -99,6 +107,7 @@ const initialState: AppState = {
   repayments: seedRepayments,
   groupName: 'IKIMINA Ubumwe',
   currentUser: null,
+  currentMemberId: null,
 }
 
 const AppContext = createContext<{
